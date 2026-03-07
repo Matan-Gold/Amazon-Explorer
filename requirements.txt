@@ -1,0 +1,11 @@
+# Core game dependencies (install on every machine)
+pygame>=2.6
+python-bidi>=0.4
+
+# AI image generation (install on the GPU machine only)
+# torch       — install from https://pytorch.org/get-started based on your GPU
+# torchvision
+# diffusers>=0.27
+# transformers>=4.40
+# accelerate>=0.29
+# Pillow>=10.0

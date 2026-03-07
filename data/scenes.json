@@ -1,0 +1,398 @@
+{
+  "scenes": {
+    "Forest": {
+      "header_key":      "scene.Forest_header",
+      "description_key": "obj.forest_opening",
+      "art": [
+        "\ud83c\udf3f\ud83c\udf3f\ud83c\udf33\ud83c\udf3f\ud83c\udf3f",
+        "\ud83e\udd9c  \ud83c\udf38  \ud83e\udd8b",
+        "\ud83c\udf3f\ud83c\udf38\ud83c\udf3f\ud83c\udf38\ud83c\udf3f"
+      ],
+      "objects": [
+        {
+          "id": "fig_tree",
+          "name_key": "obj.fig_tree_name",
+          "interactions": [
+            {
+              "id": "fig_climb",
+              "text_key": "obj.fig_climb",
+              "action": "discover_specific",
+              "params": {"discovery_id": "toucan"}
+            },
+            {
+              "id": "fig_peek",
+              "text_key": "obj.fig_peek",
+              "action": "discover_specific",
+              "params": {"discovery_id": "pygmy_owl"},
+              "requires_item": "magnifier",
+              "hint_key": "obj.hint_need_magnifier"
+            }
+          ]
+        },
+        {
+          "id": "hollow_log",
+          "name_key": "obj.hollow_log_name",
+          "interactions": [
+            {
+              "id": "log_knock",
+              "text_key": "obj.log_knock",
+              "action": "discover_specific",
+              "params": {"discovery_id": "amazon_tree_frog"}
+            },
+            {
+              "id": "log_peek",
+              "text_key": "obj.log_peek",
+              "action": "give_item",
+              "params": {"item_id": "magnifier", "knowledge_reward": 3}
+            },
+            {
+              "id": "log_break",
+              "text_key": "obj.log_break",
+              "action": "discover_specific",
+              "params": {"discovery_id": "blue_morpho_beetle"},
+              "requires_item": "axe",
+              "hint_key": "obj.hint_need_axe"
+            }
+          ]
+        },
+        {
+          "id": "brazil_nut_tree",
+          "name_key": "obj.brazil_nut_tree_name",
+          "interactions": [
+            {
+              "id": "brazil_collect",
+              "text_key": "obj.brazil_collect",
+              "action": "message_only",
+              "params": {"message_key": "obj.brazil_collect_msg"}
+            },
+            {
+              "id": "brazil_crack",
+              "text_key": "obj.brazil_crack",
+              "action": "food_gain",
+              "params": {"amount": 4},
+              "requires_item": "smooth_stone",
+              "hint_key": "obj.hint_need_stone",
+              "secondary_action": "discover_specific",
+              "secondary_params": {"discovery_id": "brazil_nut"}
+            },
+            {
+              "id": "brazil_look",
+              "text_key": "obj.brazil_look",
+              "action": "discover",
+              "params": {}
+            }
+          ]
+        }
+      ]
+    },
+
+    "River": {
+      "header_key":      "scene.River_header",
+      "description_key": "obj.river_opening",
+      "art": [
+        "\ud83c\udf3f\ud83d\udca7\ud83c\udf3f\ud83d\udca7\ud83c\udf3f",
+        "\ud83d\udc2c  \ud83c\udf0a  \ud83d\udc1f",
+        "\ud83d\udca7\ud83c\udf3f\ud83d\udca7\ud83c\udf3f\ud83d\udca7"
+      ],
+      "objects": [
+        {
+          "id": "fish_pool",
+          "name_key": "obj.fish_pool_name",
+          "interactions": [
+            {
+              "id": "fish_look",
+              "text_key": "obj.fish_look",
+              "action": "discover_specific",
+              "params": {"discovery_id": "ornamental_fish"}
+            },
+            {
+              "id": "fish_hands",
+              "text_key": "obj.fish_hands",
+              "action": "message_only",
+              "params": {"message_key": "obj.fish_hands_msg"}
+            },
+            {
+              "id": "fish_trap_use",
+              "text_key": "obj.fish_trap_use",
+              "action": "food_gain",
+              "params": {"amount": 5},
+              "requires_item": "fish_trap",
+              "hint_key": "obj.hint_need_trap",
+              "secondary_action": "discover_specific",
+              "secondary_params": {"discovery_id": "piranha"}
+            }
+          ]
+        },
+        {
+          "id": "flat_rocks",
+          "name_key": "obj.flat_rocks_name",
+          "interactions": [
+            {
+              "id": "rocks_pick",
+              "text_key": "obj.rocks_pick",
+              "action": "give_item",
+              "params": {"item_id": "smooth_stone", "knowledge_reward": 2}
+            },
+            {
+              "id": "rocks_skip",
+              "text_key": "obj.rocks_skip",
+              "action": "message_only",
+              "params": {"message_key": "obj.rocks_skip_msg"}
+            },
+            {
+              "id": "rocks_flip",
+              "text_key": "obj.rocks_flip",
+              "action": "discover_specific",
+              "params": {"discovery_id": "river_crab"}
+            }
+          ]
+        },
+        {
+          "id": "water_lilies",
+          "name_key": "obj.water_lilies_name",
+          "interactions": [
+            {
+              "id": "lily_touch",
+              "text_key": "obj.lily_touch",
+              "action": "discover_specific",
+              "params": {"discovery_id": "giant_water_lily"}
+            },
+            {
+              "id": "lily_under",
+              "text_key": "obj.lily_under",
+              "action": "give_item",
+              "params": {"item_id": "fish_trap", "knowledge_reward": 3}
+            },
+            {
+              "id": "lily_smell",
+              "text_key": "obj.lily_smell",
+              "action": "discover_specific",
+              "params": {"discovery_id": "flower_beetle"}
+            }
+          ]
+        }
+      ]
+    },
+
+    "Clearing": {
+      "header_key":      "scene.Clearing_header",
+      "description_key": "obj.clearing_opening",
+      "art": [
+        "\ud83c\udf38\u2600\ufe0f\ud83c\udf38\u2600\ufe0f\ud83c\udf38",
+        "\ud83e\udd8b  \ud83c\udf3c  \ud83d\udc1d",
+        "\u2600\ufe0f\ud83c\udf38\u2600\ufe0f\ud83c\udf38\u2600\ufe0f"
+      ],
+      "objects": [
+        {
+          "id": "cashew_bush",
+          "name_key": "obj.cashew_bush_name",
+          "interactions": [
+            {
+              "id": "cashew_collect",
+              "text_key": "obj.cashew_collect",
+              "action": "food_gain",
+              "params": {"amount": 3},
+              "secondary_action": "discover_specific",
+              "secondary_params": {"discovery_id": "cashew_nut"}
+            },
+            {
+              "id": "cashew_shake",
+              "text_key": "obj.cashew_shake",
+              "action": "discover_specific",
+              "params": {"discovery_id": "forest_mouse"}
+            }
+          ]
+        },
+        {
+          "id": "hard_nuts",
+          "name_key": "obj.hard_nuts_name",
+          "interactions": [
+            {
+              "id": "hard_eat",
+              "text_key": "obj.hard_eat",
+              "action": "message_only",
+              "params": {"message_key": "obj.hard_eat_msg"}
+            },
+            {
+              "id": "hard_crack",
+              "text_key": "obj.hard_crack",
+              "action": "food_gain",
+              "params": {"amount": 5},
+              "requires_item": "smooth_stone",
+              "hint_key": "obj.hint_need_stone",
+              "secondary_action": "discover_specific",
+              "secondary_params": {"discovery_id": "brazil_nut"}
+            }
+          ]
+        },
+        {
+          "id": "flower_field",
+          "name_key": "obj.flower_field_name",
+          "interactions": [
+            {
+              "id": "flower_look",
+              "text_key": "obj.flower_look",
+              "action": "discover_specific",
+              "params": {"discovery_id": "morpho_butterfly"}
+            },
+            {
+              "id": "flower_zoom",
+              "text_key": "obj.flower_zoom",
+              "action": "discover_specific",
+              "params": {"discovery_id": "orchid_bee"},
+              "requires_item": "magnifier",
+              "hint_key": "obj.hint_need_magnifier"
+            },
+            {
+              "id": "flower_pick",
+              "text_key": "obj.flower_pick",
+              "action": "message_only",
+              "params": {"message_key": "obj.flower_pick_msg"}
+            }
+          ]
+        }
+      ]
+    },
+
+    "Dense Jungle": {
+      "header_key":      "scene.Dense Jungle_header",
+      "description_key": "obj.jungle_opening",
+      "art": [
+        "\ud83c\udf33\ud83c\udf3f\ud83c\udf33\ud83c\udf3f\ud83c\udf33",
+        "\ud83d\udc06  \ud83c\udf3f  \ud83e\udd85",
+        "\ud83c\udf3f\ud83c\udf33\ud83c\udf3f\ud83c\udf33\ud83c\udf3f"
+      ],
+      "objects": [
+        {
+          "id": "vines",
+          "name_key": "obj.vines_name",
+          "interactions": [
+            {
+              "id": "vine_swing",
+              "text_key": "obj.vine_swing",
+              "action": "message_only",
+              "params": {"message_key": "obj.vine_swing_msg"}
+            },
+            {
+              "id": "vine_pull",
+              "text_key": "obj.vine_pull",
+              "action": "discover_specific",
+              "params": {"discovery_id": "green_parrot"}
+            },
+            {
+              "id": "vine_cut",
+              "text_key": "obj.vine_cut",
+              "action": "message_only",
+              "params": {"message_key": "obj.vine_cut_msg"},
+              "requires_item": "axe",
+              "hint_key": "obj.hint_need_axe",
+              "secondary_action": "knowledge_gain",
+              "secondary_params": {"amount": 5}
+            }
+          ]
+        },
+        {
+          "id": "ancient_tree",
+          "name_key": "obj.ancient_tree_name",
+          "interactions": [
+            {
+              "id": "tree_hug",
+              "text_key": "obj.tree_hug",
+              "action": "discover_specific",
+              "params": {"discovery_id": "kapok_tree"}
+            },
+            {
+              "id": "tree_listen",
+              "text_key": "obj.tree_listen",
+              "action": "message_only",
+              "params": {"message_key": "obj.tree_listen_msg"}
+            },
+            {
+              "id": "tree_roots",
+              "text_key": "obj.tree_roots",
+              "action": "give_item",
+              "params": {"item_id": "axe", "knowledge_reward": 4}
+            }
+          ]
+        },
+        {
+          "id": "moving_log",
+          "name_key": "obj.moving_log_name",
+          "interactions": [
+            {
+              "id": "snake_touch",
+              "text_key": "obj.snake_touch",
+              "action": "discover_specific",
+              "params": {"discovery_id": "anaconda"}
+            },
+            {
+              "id": "snake_photo",
+              "text_key": "obj.snake_photo",
+              "action": "message_only",
+              "params": {"message_key": "obj.snake_photo_msg"}
+            },
+            {
+              "id": "snake_scales",
+              "text_key": "obj.snake_scales",
+              "action": "message_only",
+              "params": {"message_key": "obj.scales_msg"},
+              "requires_item": "magnifier",
+              "hint_key": "obj.hint_need_magnifier",
+              "secondary_action": "knowledge_gain",
+              "secondary_params": {"amount": 3}
+            }
+          ]
+        }
+      ]
+    },
+
+    "Camp": {
+      "header_key":      "camp.header",
+      "subtitle_key":    "camp.subtitle",
+      "description_key": "obj.camp_opening",
+      "art": [
+        "\ud83c\udf3f\ud83c\udf3f\ud83c\udf3f\ud83c\udf3f\ud83c\udf3f",
+        "  \ud83c\udfd5\ufe0f  \ud83d\udd25  \ud83c\udfd5\ufe0f  ",
+        "\ud83c\udf38\u2b50\ud83c\udf38\u2b50\ud83c\udf38"
+      ],
+      "objects": [
+        {
+          "id": "campfire",
+          "name_key": "obj.campfire_name",
+          "interactions": [
+            {
+              "id": "fire_sit",
+              "text_key": "obj.fire_sit",
+              "action": "rest",
+              "params": {"food_restore": 5}
+            }
+          ]
+        },
+        {
+          "id": "discovery_journal",
+          "name_key": "obj.discovery_journal_name",
+          "interactions": [
+            {
+              "id": "journal_open",
+              "text_key": "obj.journal_open",
+              "action": "open_book",
+              "params": {}
+            }
+          ]
+        },
+        {
+          "id": "skills_journal",
+          "name_key": "obj.skills_journal_name",
+          "interactions": [
+            {
+              "id": "skills_open",
+              "text_key": "obj.skills_open",
+              "action": "open_skills",
+              "params": {}
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

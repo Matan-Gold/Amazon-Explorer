@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+
+# Generated AI images (large binary files — generate with generate_on_gpu.py)
+data/images/
+
+# HuggingFace model cache
+.cache/
+*.safetensors
+*.bin
+*.ckpt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
