@@ -8,6 +8,7 @@ States:
   MAP → BOOK / SKILLS
 """
 
+import math
 import sys
 import threading
 import pygame
@@ -41,6 +42,11 @@ class GameApp:
         # Map
         self.hover_tile: tuple | None = None
         self._tile_rects: dict = {}
+
+        # Map character animation
+        self._map_char_px: float = 0.0   # current rendered x pixel of explorer
+        self._map_char_py: float = 0.0   # current rendered y pixel
+        self._map_move_pending: str | None = None   # tile_type to open after walk anim
 
         # Scene
         self.scene_tile: str = ""
@@ -120,8 +126,26 @@ class GameApp:
                                                 self.avatar_hover, self.avatar_selected)
 
         elif self.state == "MAP":
-            self._ui = scenes.draw_map(self.win, self.fonts,
-                                       self.game_state, self.hover_tile)
+            # Lerp explorer toward the player's actual tile each frame
+            tx_c, ty_c = self._tile_map_center(
+                self.game_state.player.x, self.game_state.player.y)
+            self._map_char_px += (tx_c - self._map_char_px) * 0.18
+            self._map_char_py += (ty_c - self._map_char_py) * 0.18
+
+            # Once close enough, trigger the pending scene open
+            if self._map_move_pending:
+                dist = (abs(tx_c - self._map_char_px) +
+                        abs(ty_c - self._map_char_py))
+                if dist < 3.0:
+                    pending = self._map_move_pending
+                    self._map_move_pending = None
+                    self._open_scene(pending)
+                    return   # state changed; skip MAP draw this frame
+
+            self._ui = scenes.draw_map(
+                self.win, self.fonts, self.game_state, self.hover_tile,
+                player_anim=(int(self._map_char_px), int(self._map_char_py)),
+            )
             self._tile_rects = self._ui.get("tiles", {})
 
         elif self.state == "SCENE_OBJECTS":
@@ -204,6 +228,13 @@ class GameApp:
             if self.avatar_selected >= 0:
                 self._start_game()
 
+    def _tile_map_center(self, tx: int, ty: int) -> tuple:
+        """Pixel centre used to position the explorer sprite on a map tile."""
+        return (
+            scenes.MAP_OFFSET_X + tx * scenes.TILE_W + (scenes.TILE_W - 4) // 2,
+            scenes.MAP_OFFSET_Y + ty * scenes.TILE_H + (scenes.TILE_H - 4) // 2 + 4,
+        )
+
     def _start_game(self):
         avatar = AVATAR_OPTIONS[self.avatar_selected]
         world = game_map.build_world()
@@ -217,6 +248,8 @@ class GameApp:
             items_db=items_db,
         )
         scenes.set_player_ref(self.game_state.player)
+        # Place explorer instantly at the starting tile (camp = 2, 2)
+        self._map_char_px, self._map_char_py = self._tile_map_center(2, 2)
         self.state = "MAP"
 
     # ── Map ───────────────────────────────────────────────────────────────────
@@ -224,6 +257,10 @@ class GameApp:
     def _ev_map(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.hover_tile = self._tile_at(event.pos)
+
+        # Block tile clicks while the explorer is walking to a new tile
+        if self._map_move_pending:
+            return
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             clicked = self._tile_at(event.pos)
@@ -270,10 +307,8 @@ class GameApp:
             return
 
         new_tile = game_map.get_tile(self.game_state.world, tx, ty)
-        # Auto-open scene on first visit (tile was unexplored before move marked it)
-        # We check explored status: move() marks it True, so compare to the visit flag
-        # We track first-visit by the scene opening logic
-        self._open_scene(new_tile.tile_type)
+        # Queue the scene — the explorer walks there first, then it opens
+        self._map_move_pending = new_tile.tile_type
 
     def _pos_to_dir(self, dx, dy) -> str | None:
         return {(0, -1): "W", (0, 1): "S", (-1, 0): "A", (1, 0): "D"}.get((dx, dy))

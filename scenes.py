@@ -22,8 +22,8 @@ import creatures
 
 # ── Generated image cache ──────────────────────────────────────────────────────
 # Populated once by load_scene_images(); keyed by tile_type.
-_scene_surfaces: dict = {}   # tile_type → full-scene Surface (1024×560)
-_tile_surfaces:  dict = {}   # tile_type → mini Surface (100×100) for map tiles
+_scene_surfaces: dict = {}   # tile_type → list of full-scene Surfaces (1024×560)
+_tile_surfaces:  dict = {}   # tile_type → Surface (100×100) for map tiles (first variant)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -113,7 +113,11 @@ def load_fonts() -> dict:
 def load_scene_images() -> int:
     """Load AI-generated PNG backgrounds into pygame surfaces.
 
-    Returns the number of images successfully loaded.
+    Loads all variants (scene_forest.png, scene_forest_2.png, …) for each
+    tile type. draw_scene_bg() picks a variant using the tile's seed so every
+    tile of the same type can look different.
+
+    Returns the number of image files successfully loaded.
     Call this after pygame.init() and after asset generation completes.
     """
     from pathlib import Path
@@ -121,18 +125,27 @@ def load_scene_images() -> int:
     count = 0
     for tile_type in ("Forest", "River", "Clearing", "Dense Jungle", "Camp"):
         slug = tile_type.lower().replace(" ", "_")
-        path = images_dir / f"scene_{slug}.png"
-        if not path.exists():
-            continue
-        try:
-            raw = pygame.image.load(str(path)).convert()
-            # Full-scene surface
-            _scene_surfaces[tile_type] = pygame.transform.smoothscale(raw, (W, MAP_AREA_H))
-            # Map-tile thumbnail (slightly smaller than tile to leave border room)
-            _tile_surfaces[tile_type]  = pygame.transform.smoothscale(raw, (TILE_W - 6, TILE_H - 6))
-            count += 1
-        except Exception as e:
-            print(f"[scenes] Could not load {path}: {e}")
+        variants = []
+        # Load base image then numbered variants (_2, _3, …)
+        for suffix in ("", "_2", "_3", "_4", "_5"):
+            path = images_dir / f"scene_{slug}{suffix}.png"
+            if not path.exists():
+                continue
+            try:
+                raw = pygame.image.load(str(path)).convert()
+                variants.append(pygame.transform.smoothscale(raw, (W, MAP_AREA_H)))
+                count += 1
+            except Exception as e:
+                print(f"[scenes] Could not load {path}: {e}")
+        if variants:
+            _scene_surfaces[tile_type] = variants
+            # Map thumbnail uses the first variant
+            raw_thumb = pygame.image.load(
+                str(images_dir / f"scene_{slug}.png")
+            ).convert()
+            _tile_surfaces[tile_type] = pygame.transform.smoothscale(
+                raw_thumb, (TILE_W - 6, TILE_H - 6)
+            )
     return count
 
 
@@ -264,10 +277,10 @@ def draw_map_tile(surf, rect: Rect, tile_type: str, explored: bool,
     thickness = 3 if is_player else (2 if is_hover else 1)
     pygame.draw.rect(surf, border_col, rect, thickness, border_radius=6)
 
-    # Player glow
+    # Player tile gets a bright inner glow — the sprite itself is drawn by draw_map()
     if is_player:
-        glow = Rect(rect.x - 3, rect.y - 3, rect.w + 6, rect.h + 6)
-        pygame.draw.rect(surf, color, glow, 2, border_radius=9)
+        inner = Rect(rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4)
+        pygame.draw.rect(surf, color, inner, 2, border_radius=4)
 
 
 def _darken(color, factor):
@@ -361,21 +374,166 @@ def _map_camp(surf, rect):
 # ── Scene background art (full 1024×MAP_AREA_H) ───────────────────────────────
 
 def draw_scene_bg(surf, tile_type: str, seed: int = 0) -> None:
-    """Draw scene background — uses AI-generated PNG if available, else procedural art."""
+    """Draw scene background — uses AI-generated PNG if available, else procedural art.
+
+    When multiple variants exist for a tile type, picks one deterministically
+    using `seed` (which is derived from the tile's grid position in main.py),
+    so each tile of the same type shows a different image.
+    Animated overlays are always drawn on top.
+    """
     if tile_type in _scene_surfaces:
-        surf.blit(_scene_surfaces[tile_type], (0, 0))
-        return
-    # Procedural fallback
-    area = Rect(0, 0, W, MAP_AREA_H)
-    funcs = {
-        "Forest":       _draw_forest,
-        "River":        _draw_river,
-        "Clearing":     _draw_clearing,
-        "Dense Jungle": _draw_jungle,
-        "Camp":         _draw_camp,
-    }
-    fn = funcs.get(tile_type, _draw_forest)
-    fn(surf, area, seed)
+        variants = _scene_surfaces[tile_type]
+        surf.blit(variants[seed % len(variants)], (0, 0))
+    else:
+        # Procedural fallback
+        area = Rect(0, 0, W, MAP_AREA_H)
+        funcs = {
+            "Forest":       _draw_forest,
+            "River":        _draw_river,
+            "Clearing":     _draw_clearing,
+            "Dense Jungle": _draw_jungle,
+            "Camp":         _draw_camp,
+        }
+        fn = funcs.get(tile_type, _draw_forest)
+        fn(surf, area, seed)
+    _draw_scene_animation(surf, tile_type, seed)
+
+
+def _draw_scene_animation(surf, tile_type: str, seed: int) -> None:
+    """Per-frame animated overlays drawn on top of scene background.
+
+    All movement is driven by pygame.time.get_ticks() so it runs continuously.
+    Positional variation per tile comes from `seed` via a seeded RNG.
+    """
+    t   = pygame.time.get_ticks() / 1000.0
+    tau = math.pi * 2
+    rng = random.Random(seed ^ 0xA4B3C2D1)
+
+    # ── Falling leaves (Forest, Clearing, Dense Jungle) ──────────────────────
+    if tile_type in ("Forest", "Clearing", "Dense Jungle"):
+        palette = {
+            "Forest":       [(55, 150, 35), (75, 130, 25), (170, 110, 25)],
+            "Clearing":     [(55, 170, 35), (210, 170, 50), (190,  90, 50)],
+            "Dense Jungle": [(15,  80, 15), ( 25, 100, 25), ( 35, 120, 30)],
+        }[tile_type]
+        for _ in range(6):
+            x0  = rng.randint(30, W - 30)
+            spd = 30 + rng.random() * 35
+            amp = 25 + rng.random() * 35
+            swf = 0.5 + rng.random() * 0.8
+            ph  = rng.random() * tau
+            sz  = 3 + int(rng.random() * 4)
+            col = rng.choice(palette)
+            period = (MAP_AREA_H + 60) / spd
+            t_off  = rng.random() * period
+            t_n    = (t + t_off) % period
+            lx = int(x0 + amp * math.sin(t * swf + ph))
+            ly = int(-20 + (MAP_AREA_H + 40) * t_n / period)
+            ang = t * 1.2 + ph
+            pts = [
+                (lx + int(sz * math.cos(ang + k * 2.094)),
+                 ly + int(sz * math.sin(ang + k * 2.094)))
+                for k in range(3)
+            ]
+            pygame.draw.polygon(surf, col, pts)
+
+    # ── Water ripples + sparkles (River) ─────────────────────────────────────
+    if tile_type == "River":
+        # Water starts ~40 % down in all 3 variants and spans nearly full width
+        wy    = MAP_AREA_H * 2 // 5          # ≈ y=224  (was MAP_AREA_H//2 = 280)
+        rsurf = pygame.Surface((W, MAP_AREA_H), pygame.SRCALPHA)
+        for _ in range(4):
+            rx  = rng.randint(160, W - 160)  # wider — water reaches near both edges
+            ry  = rng.randint(wy + 20, MAP_AREA_H - 30)
+            per = 2.2 + rng.random() * 1.8
+            ph  = rng.random() * per
+            tn  = (t + ph) % per
+            rad = int(tn / per * 70)
+            alp = int(160 * (1 - tn / per))
+            if rad > 3 and alp > 15:
+                pygame.draw.ellipse(rsurf, (140, 200, 255, alp),
+                                    Rect(rx - rad, ry - rad // 3, rad * 2, rad * 2 // 3), 2)
+        surf.blit(rsurf, (0, 0))
+        for _ in range(5):
+            sx    = rng.randint(140, W - 140)  # match wider ripple range
+            sy    = rng.randint(wy + 10, MAP_AREA_H - 20)
+            blink = (math.sin(t * (2.5 + rng.random() * 2) + rng.random() * tau) + 1) / 2
+            if blink > 0.65:
+                b = int(180 + 75 * blink)
+                pygame.draw.circle(surf, (b, b, b), (sx, sy), 2)
+
+    # ── Butterflies (Clearing, Forest) ───────────────────────────────────────
+    if tile_type in ("Clearing", "Forest"):
+        n = 3 if tile_type == "Clearing" else 2
+        for _ in range(n):
+            cx  = rng.randint(W // 5, W * 4 // 5)
+            cy  = rng.randint(MAP_AREA_H // 5, MAP_AREA_H * 2 // 3)
+            fx  = 0.22 + rng.random() * 0.18
+            fy  = 0.45 + rng.random() * 0.30
+            ax  = 70   + rng.random() * 90
+            ay  = 35   + rng.random() * 45
+            ph  = rng.random() * tau
+            col = rng.choice([(80, 120, 220), (210, 80, 150), (195, 155, 40), (80, 190, 80)])
+            bx  = int(cx + ax * math.sin(t * fx + ph))
+            by  = int(cy + ay * math.sin(t * fy * 2 + ph))
+            flap = abs(math.sin(t * 7 + ph))
+            ws   = int(7 + 3 * flap)
+            hs   = int(4 + 2 * flap)
+            pygame.draw.ellipse(surf, col, Rect(bx - ws - 1, by - hs, ws, hs * 2))
+            pygame.draw.ellipse(surf, col, Rect(bx + 2,      by - hs, ws, hs * 2))
+            pygame.draw.circle(surf, (35, 25, 15), (bx, by), 2)
+
+    # ── Fireflies (Camp, Dense Jungle) ───────────────────────────────────────
+    if tile_type in ("Camp", "Dense Jungle"):
+        ffsurf = pygame.Surface((W, MAP_AREA_H), pygame.SRCALPHA)
+        n_ff   = 14 if tile_type == "Camp" else 9
+        for _ in range(n_ff):
+            bx  = rng.randint(40, W - 40)
+            by  = rng.randint(30, MAP_AREA_H - 70)
+            dxp = rng.random() * tau
+            dyp = rng.random() * tau
+            blf = 1.2 + rng.random() * 2.0
+            blp = rng.random() * tau
+            fx  = int(bx + 20 * math.sin(t * 0.28 + dxp))
+            fy  = int(by + 12 * math.sin(t * 0.35 + dyp))
+            br  = (math.sin(t * blf + blp) + 1) / 2
+            if br > 0.25:
+                a  = int(br * 210)
+                gr = int(3 + br * 5)
+                pygame.draw.circle(ffsurf, (210, 245, 120, a), (fx, fy), gr)
+                pygame.draw.circle(ffsurf, (240, 255, 190, min(255, a + 60)), (fx, fy), 2)
+        surf.blit(ffsurf, (0, 0))
+
+    # ── Swaying vines (Dense Jungle) ─────────────────────────────────────────
+    if tile_type == "Dense Jungle":
+        vsurf = pygame.Surface((W, MAP_AREA_H), pygame.SRCALPHA)
+        # Positions cover: outer-left trunk, inner-left, centre (dominant in v3), inner-right, outer-right
+        for vxb in [120, 330, 510, 690, 900]:
+            vxb += rng.randint(-25, 25)
+            sa  = 7 + rng.random() * 8
+            sf  = 0.35 + rng.random() * 0.3
+            ph  = rng.random() * tau
+            n_seg = 18
+            pts = [
+                (int(vxb + sa * math.sin(t * sf + ph + s * 0.25)),
+                 s * (MAP_AREA_H // n_seg))
+                for s in range(n_seg)
+            ]
+            pygame.draw.lines(vsurf, (35, 115, 25, 170), False, pts, 2)
+        surf.blit(vsurf, (0, 0))
+
+    # ── Campfire flicker glow (Camp) ─────────────────────────────────────────
+    if tile_type == "Camp":
+        # Fire sits slightly left of centre in the generated image (~x=450)
+        cx, cy  = W * 9 // 20, MAP_AREA_H * 2 // 3 + 10
+        flicker = 0.85 + 0.15 * math.sin(t * 12.3) + 0.08 * math.sin(t * 7.7)
+        gsurf   = pygame.Surface((W, MAP_AREA_H), pygame.SRCALPHA)
+        for gr, ga in [(55, 30), (40, 50), (28, 65), (18, 80)]:
+            gr2 = int(gr * flicker)
+            if gr2 > 0:
+                pygame.draw.ellipse(gsurf, (240, 140, 30, ga),
+                                    Rect(cx - gr2, cy - gr2 // 2, gr2 * 2, gr2))
+        surf.blit(gsurf, (0, 0))
 
 
 def _draw_forest(surf, area, seed=0):
@@ -760,11 +918,105 @@ def draw_setup_avatar(surf, fonts, hover_idx: int, selected_idx: int) -> dict:
 
 # ── Full screen: Map ──────────────────────────────────────────────────────────
 
-def draw_map(surf, fonts, game_state, hover_tile: tuple) -> dict:
+def _tile_map_center(tx: int, ty: int) -> tuple:
+    """Pixel centre of a map tile, shifted down slightly so the character stands on it."""
+    return (
+        MAP_OFFSET_X + tx * TILE_W + (TILE_W - 4) // 2,
+        MAP_OFFSET_Y + ty * TILE_H + (TILE_H - 4) // 2 + 4,
+    )
+
+
+def _draw_map_background(surf) -> None:
+    """Rich decorative jungle map background + gold frame around the grid."""
+    # Vertical gradient: near-black green top → slightly warmer bottom
+    for y in range(MAP_AREA_H):
+        t = y / MAP_AREA_H
+        pygame.draw.line(surf, (
+            int(7  + 10 * t),
+            int(14 + 20 * t),
+            int(7  +  8 * t),
+        ), (0, y), (W, y))
+
+    # Scattered leaf silhouettes — only outside the tile grid area
+    gx1 = MAP_OFFSET_X - 16
+    gx2 = MAP_OFFSET_X + TILE_COLS * TILE_W + 16
+    gy1 = MAP_OFFSET_Y - 16
+    gy2 = MAP_OFFSET_Y + TILE_ROWS * TILE_H + 16
+    rng = random.Random(0xC0FFEE)
+    for _ in range(90):
+        lx = rng.randint(4, W - 4)
+        ly = rng.randint(4, MAP_AREA_H - 4)
+        if gx1 < lx < gx2 and gy1 < ly < gy2:
+            continue
+        ang = rng.random() * math.pi
+        sz  = rng.randint(10, 24)
+        g   = rng.randint(45, 90)
+        col = (rng.randint(4, 18), g, rng.randint(4, 18))
+        pts = [
+            (int(lx + sz       * math.cos(ang + k * math.pi / 3)),
+             int(ly + sz * 0.4 * math.sin(ang + k * math.pi / 3)))
+            for k in range(6)
+        ]
+        pygame.draw.polygon(surf, col, pts)
+
+    # Gold decorative frame around the grid
+    fx = MAP_OFFSET_X - 10
+    fy = MAP_OFFSET_Y - 10
+    fw = TILE_COLS * TILE_W + 20
+    fh = TILE_ROWS * TILE_H + 20
+    pygame.draw.rect(surf, (50, 38, 10),  Rect(fx - 3, fy - 3, fw + 6, fh + 6), 0, border_radius=13)
+    pygame.draw.rect(surf, (80, 62, 18),  Rect(fx, fy, fw, fh), 4, border_radius=12)
+    pygame.draw.rect(surf, (140, 110, 38), Rect(fx + 2, fy + 2, fw - 4, fh - 4), 2, border_radius=10)
+    for cx2, cy2 in [(fx, fy), (fx + fw, fy), (fx, fy + fh), (fx + fw, fy + fh)]:
+        pygame.draw.circle(surf, (60,  45, 10),  (cx2, cy2), 11)
+        pygame.draw.circle(surf, (150, 115, 42), (cx2, cy2),  8)
+        pygame.draw.circle(surf, (220, 178, 68), (cx2, cy2),  5)
+        pygame.draw.circle(surf, (255, 235, 110),(cx2, cy2),  2)
+
+
+def _draw_map_paths(surf, world) -> None:
+    """Colour the narrow gap between adjacent explored tiles to look like jungle trails."""
+    for ty in range(TILE_ROWS):
+        for tx in range(TILE_COLS):
+            if not world.grid[ty][tx].explored:
+                continue
+            # Horizontal gap to the right neighbour
+            if tx + 1 < TILE_COLS and world.grid[ty][tx + 1].explored:
+                gx  = MAP_OFFSET_X + (tx + 1) * TILE_W - 4   # start of 4-px gap
+                cy2 = MAP_OFFSET_Y + ty * TILE_H + (TILE_H - 4) // 2
+                pygame.draw.rect(surf, (40, 70, 25),  Rect(gx,     cy2 - 6, 4, 12))
+                pygame.draw.rect(surf, (55, 95, 35),  Rect(gx,     cy2 - 4, 4,  8))
+                pygame.draw.rect(surf, (70, 115, 42), Rect(gx + 1, cy2 - 2, 2,  4))
+            # Vertical gap to the bottom neighbour
+            if ty + 1 < TILE_ROWS and world.grid[ty + 1][tx].explored:
+                cx2 = MAP_OFFSET_X + tx * TILE_W + (TILE_W - 4) // 2
+                gy  = MAP_OFFSET_Y + (ty + 1) * TILE_H - 4   # start of 4-px gap
+                pygame.draw.rect(surf, (40, 70, 25),  Rect(cx2 - 6, gy,     12, 4))
+                pygame.draw.rect(surf, (55, 95, 35),  Rect(cx2 - 4, gy,      8, 4))
+                pygame.draw.rect(surf, (70, 115, 42), Rect(cx2 - 2, gy + 1,  4, 2))
+
+
+def _draw_map_explorer(surf, px: int, py: int) -> None:
+    """Draw the explorer sprite on the world map with a pulsing shadow beneath."""
+    t = pygame.time.get_ticks() / 1000.0
+    pulse = 0.75 + 0.25 * math.sin(t * 3.5)
+    sr = int(16 * pulse)
+    ssurf = pygame.Surface((sr * 2 + 4, sr // 2 + 6), pygame.SRCALPHA)
+    pygame.draw.ellipse(ssurf, (0, 0, 0, 90),
+                        Rect(2, 2, sr * 2, sr // 2 + 2))
+    surf.blit(ssurf, (px - sr - 2, py + 18))
+    frame = (pygame.time.get_ticks() // 380) % 3
+    creatures.draw_explorer(surf, px, py, size=44, frame=frame)
+
+
+def draw_map(surf, fonts, game_state, hover_tile: tuple,
+             player_anim: tuple | None = None) -> dict:
     """Draw the overworld map screen. Returns {'tiles': {(tx,ty): Rect}}."""
     surf.fill(C_BG)
+    _draw_map_background(surf)
+    _draw_map_paths(surf, game_state.world)
 
-    # Header
+    # Header (drawn before tiles so it sits on the background)
     draw_text(surf, loc.t("map.header"), (W // 2, 16), fonts["lg"], C_GREEN, align="center")
 
     tile_rects = {}
@@ -775,9 +1027,16 @@ def draw_map(surf, fonts, game_state, hover_tile: tuple) -> dict:
             rect = Rect(rx, ry, TILE_W - 4, TILE_H - 4)
             tile = game_state.world.grid[ty][tx]
             is_player = (tx == game_state.player.x and ty == game_state.player.y)
-            is_hover = (hover_tile == (tx, ty)) and not is_player
+            is_hover  = (hover_tile == (tx, ty)) and not is_player
             draw_map_tile(surf, rect, tile.tile_type, tile.explored, is_player, is_hover)
             tile_rects[(tx, ty)] = rect
+
+    # Explorer character drawn on top of all tiles
+    if player_anim is not None:
+        px, py = player_anim
+    else:
+        px, py = _tile_map_center(game_state.player.x, game_state.player.y)
+    _draw_map_explorer(surf, px, py)
 
     draw_status_bar(surf, fonts, game_state.player)
 

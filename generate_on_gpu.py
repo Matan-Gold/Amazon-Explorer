@@ -35,6 +35,26 @@ SCENES = {
             "depth, warm afternoon light, magical adventure game background, no humans, masterpiece"
         ),
     },
+    "Forest_2": {
+        "slug": "scene_forest_2",
+        "seed": 500,
+        "prompt": (
+            "Amazon rainforest at misty dawn, painterly fantasy illustration, ancient kapok trees "
+            "emerging from soft morning fog, gentle golden light filtering through mist, giant "
+            "dewdrop-covered tropical leaves, glowing orchids in foreground, serene magical "
+            "atmosphere, adventure game background, no humans, masterpiece"
+        ),
+    },
+    "Forest_3": {
+        "slug": "scene_forest_3",
+        "seed": 501,
+        "prompt": (
+            "Amazon rainforest at twilight, painterly fantasy illustration, warm amber and violet "
+            "sky glimpsed through canopy, fireflies beginning to glow among ancient trees, exotic "
+            "heliconia flowers lit by last sunlight, mysterious magical atmosphere, "
+            "adventure game background, no humans, masterpiece"
+        ),
+    },
     "River": {
         "slug": "scene_river",
         "seed": 123,
@@ -43,6 +63,26 @@ SCENES = {
             "with shimmering reflections, lush tropical banks, pink Amazon river dolphin leaping, "
             "giant Victoria lily pads with pink flowers, colorful butterflies, tropical blue sky "
             "with clouds, magical adventure game background, no humans, masterpiece"
+        ),
+    },
+    "River_2": {
+        "slug": "scene_river_2",
+        "seed": 502,
+        "prompt": (
+            "Amazon jungle stream and waterfall, painterly fantasy illustration, crystal-clear "
+            "shallow rapids over mossy rocks, lush overhanging ferns and bromeliads, colorful "
+            "tropical fish visible in water, dappled sunlight through canopy, small hidden "
+            "waterfall, magical adventure game background, no humans, masterpiece"
+        ),
+    },
+    "River_3": {
+        "slug": "scene_river_3",
+        "seed": 503,
+        "prompt": (
+            "Amazon river at golden sunset, painterly fantasy illustration, vast glowing river "
+            "reflecting warm orange and pink sky, silhouetted tropical trees lining the banks, "
+            "giant Victoria lily pads in foreground, a heron standing still, tranquil magical "
+            "atmosphere, adventure game background, no humans, masterpiece"
         ),
     },
     "Clearing": {
@@ -55,6 +95,26 @@ SCENES = {
             "magical adventure game background, no humans, masterpiece"
         ),
     },
+    "Clearing_2": {
+        "slug": "scene_clearing_2",
+        "seed": 504,
+        "prompt": (
+            "Amazon rainforest clearing at misty morning, painterly fantasy illustration, soft "
+            "white mist drifting over vivid green meadow, rainbow orchids and exotic wildflowers "
+            "blooming, colorful tropical butterflies, ancient trees forming misty border, soft "
+            "golden light, magical adventure game background, no humans, masterpiece"
+        ),
+    },
+    "Clearing_3": {
+        "slug": "scene_clearing_3",
+        "seed": 505,
+        "prompt": (
+            "Amazon rainforest clearing at dusk, painterly fantasy illustration, warm golden-orange "
+            "sky above open meadow, fireflies beginning to emerge, glowing tropical flowers, "
+            "surrounding jungle trees lit by last rays of sun, magical serene atmosphere, "
+            "adventure game background, no humans, masterpiece"
+        ),
+    },
     "Dense Jungle": {
         "slug": "scene_dense_jungle",
         "seed": 789,
@@ -64,6 +124,26 @@ SCENES = {
             "dark green canopy, hanging lianas and vines, giant exotic leaves, glowing "
             "bioluminescent mushrooms and flowers, deep rich greens, magical adventure game "
             "background, no humans, masterpiece"
+        ),
+    },
+    "Dense Jungle_2": {
+        "slug": "scene_dense_jungle_2",
+        "seed": 506,
+        "prompt": (
+            "ancient Amazon jungle depths, painterly fantasy illustration, massive twisted tree "
+            "roots and trunks, glowing bioluminescent fungi carpeting the forest floor, mysterious "
+            "shafts of blue-green light, enormous exotic leaves, hidden misty waterfall in "
+            "distance, deep mystical atmosphere, adventure game background, no humans, masterpiece"
+        ),
+    },
+    "Dense Jungle_3": {
+        "slug": "scene_dense_jungle_3",
+        "seed": 507,
+        "prompt": (
+            "Amazon dense jungle interior looking upward, painterly fantasy illustration, massive "
+            "tree canopy far above, dramatic golden god rays piercing dark green atmosphere, "
+            "hanging aerial roots and lianas draped between trees, exotic parrots silhouetted "
+            "high in canopy, magical adventure game background, no humans, masterpiece"
         ),
     },
     "Camp": {
@@ -139,7 +219,7 @@ def main():
         print("ERROR: Could not load any model. Check your internet connection.")
         sys.exit(1)
 
-    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, final_sigmas_type="sigma_min")
     if device == "cuda":
         pipe.enable_model_cpu_offload()
     else:
