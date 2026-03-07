@@ -164,6 +164,7 @@ class GameApp:
                 self.selected_obj, self.game_state.player.items,
                 self.game_state.items_db, self.hover_btn,
                 tile_seed=tx * 7 + ty * 13 + 1,
+                player_skills=self.game_state.player.skills,
             )
 
         elif self.state == "POPUP":
@@ -392,7 +393,7 @@ class GameApp:
         params = inter.get("params", {})
         requires_item = inter.get("requires_item")
 
-        # Locked check
+        # Item lock check
         if requires_item and requires_item not in self.game_state.player.items:
             hint_key = inter.get("hint_key")
             if hint_key:
@@ -400,6 +401,20 @@ class GameApp:
                                          "tile_type": self.scene_tile})
             self._show_next_popup()
             return
+
+        # Skill lock check
+        requires_skill = inter.get("requires_skill")
+        if requires_skill:
+            skill_id, min_level_str = requires_skill.split(":")
+            min_level   = int(min_level_str)
+            actual_skill = self.game_state.player.skills.get(skill_id)
+            if actual_skill is None or actual_skill.level < min_level:
+                hint_key = inter.get("hint_key")
+                if hint_key:
+                    self.popup_queue.append({"kind": "message", "text": loc.t(hint_key),
+                                             "tile_type": self.scene_tile})
+                self._show_next_popup()
+                return
 
         # Special actions
         if action == "close_scene":

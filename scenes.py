@@ -1108,9 +1108,17 @@ def set_player_ref(player) -> None:
 
 # ── Full screen: Scene Interactions ──────────────────────────────────────────
 
+_SKILL_DISPLAY_NAMES = {
+    "explorer":        "\ud83d\udd0d \u05e1\u05d9\u05d9\u05e8\u05ea",
+    "nature_friend":   "\ud83c\udf3f \u05d9\u05d3\u05d9\u05d3\u05ea \u05d4\u05d8\u05d1\u05e2",
+    "survival_helper": "\ud83c\udf4e \u05e9\u05d5\u05e8\u05d3\u05ea",
+}
+
+
 def draw_scene_interactions(surf, fonts, tile_type: str, obj: dict,
                              player_items: set, items_db: list,
-                             hover_btn: int, tile_seed: int = 0) -> dict:
+                             hover_btn: int, tile_seed: int = 0,
+                             player_skills: dict | None = None) -> dict:
     """Draw scene bg dimmed + interaction panel. Returns {'btns': [Rect,...], 'back': Rect}."""
     draw_scene_bg(surf, tile_type, seed=tile_seed)
 
@@ -1131,13 +1139,28 @@ def draw_scene_interactions(surf, fonts, tile_type: str, obj: dict,
     btns = []
     for i, inter in enumerate(interactions):
         text = loc.t(inter["text_key"])
-        requires = inter.get("requires_item")
-        locked = bool(requires and requires not in player_items)
+
+        # Determine lock state — item lock takes priority over skill lock for display
+        requires_item  = inter.get("requires_item")
+        requires_skill = inter.get("requires_skill")
+        locked     = False
         lock_label = ""
-        if locked:
-            item = next((it for it in items_db if it.id == requires), None)
+
+        if requires_item and requires_item not in player_items:
+            locked = True
+            item = next((it for it in items_db if it.id == requires_item), None)
             if item:
                 lock_label = f"{item.emoji} {item.name}"
+        elif requires_skill:
+            skill_id, min_level_str = requires_skill.split(":")
+            min_level    = int(min_level_str)
+            actual_skill = (player_skills or {}).get(skill_id)
+            actual_level = actual_skill.level if actual_skill else 0
+            if actual_level < min_level:
+                locked = True
+                skill_name = _SKILL_DISPLAY_NAMES.get(skill_id, skill_id)
+                lock_label = f"{skill_name} \u05e8\u05de\u05d4 {min_level}"
+
         btn_r = Rect(panel.x + 30, panel.y + 50 + i * 64, panel.w - 60, 52)
         draw_button(surf, btn_r, text, fonts["md"],
                     hover=(i == hover_btn), locked=locked, lock_label=lock_label)
@@ -1148,9 +1171,8 @@ def draw_scene_interactions(surf, fonts, tile_type: str, obj: dict,
     back_btn = Rect(panel.x + 30, back_y, panel.w - 60, 36)
     draw_button(surf, back_btn, loc.t("obj.back_to_objects"), fonts["sm"],
                 hover=(hover_btn == len(interactions)))
-    btns_back = back_btn
 
-    return {"btns": btns, "back": btns_back}
+    return {"btns": btns, "back": back_btn}
 
 
 # ── Popup ─────────────────────────────────────────────────────────────────────
@@ -1362,6 +1384,13 @@ def draw_skills(surf, fonts, game_state, hover_row: int = -1) -> dict:
     draw_text(surf, loc.t("skills.knowledge_label", knowledge=player.knowledge),
               (W // 2, 58), fonts["md"], C_BLUE, align="center")
 
+    # Per-level unlock descriptions shown in the skill row
+    _UNLOCKS = {
+        "explorer":        ["skills.explorer_unlock_1", "skills.explorer_unlock_2", "skills.explorer_unlock_3"],
+        "nature_friend":   ["skills.nature_unlock_1",   "skills.nature_unlock_2",   "skills.nature_unlock_3"],
+        "survival_helper": ["skills.survival_unlock_1", "skills.survival_unlock_2", "skills.survival_unlock_3"],
+    }
+
     skill_display = [
         ("explorer",        loc.t("skills.explorer_name"), loc.t("skills.explorer_desc")),
         ("nature_friend",   loc.t("skills.nature_name"),   loc.t("skills.nature_desc")),
@@ -1370,23 +1399,33 @@ def draw_skills(surf, fonts, game_state, hover_row: int = -1) -> dict:
 
     btns = []
     for i, (skill_id, name, desc) in enumerate(skill_display):
-        skill = player.skills[skill_id]
-        row_r = Rect(60, 100 + i * 140, W - 120, 120)
-        bg = (35, 55, 35) if i == hover_row else (20, 35, 20)
+        skill   = player.skills[skill_id]
+        row_r   = Rect(60, 100 + i * 155, W - 120, 135)
+        bg      = (35, 55, 35) if i == hover_row else (20, 35, 20)
         pygame.draw.rect(surf, bg, row_r, border_radius=10)
         pygame.draw.rect(surf, C_YELLOW if i == hover_row else C_GREEN_DARK, row_r, 2, border_radius=10)
 
-        # Stars
+        # Stars (filled = unlocked, dim = locked)
         stars_x = row_r.x + 20
         for s in range(3):
-            col = C_GOLD if s < skill.level else (60, 60, 60)
-            pygame.draw.circle(surf, col, (stars_x + s * 28, row_r.centery - 10), 10)
+            col = C_GOLD if s < skill.level else (50, 50, 50)
+            pygame.draw.circle(surf, col, (stars_x + s * 28, row_r.y + 28), 10)
+            pygame.draw.circle(surf, (200, 180, 60) if s < skill.level else (80, 80, 80),
+                               (stars_x + s * 28, row_r.y + 28), 10, 2)
 
-        # Name + desc
-        draw_text(surf, name, (row_r.x + 110, row_r.y + 20), fonts["lg"], C_WHITE)
-        draw_text(surf, desc, (row_r.x + 110, row_r.y + 58), fonts["md"], C_DIM)
+        # Name
+        draw_text(surf, name, (row_r.x + 110, row_r.y + 12), fonts["lg"], C_WHITE)
+
+        # Per-level unlock hints (3 in a row, coloured by whether already unlocked)
+        unlock_keys = _UNLOCKS[skill_id]
+        ux = row_r.x + 110
+        for lvl_idx, ukey in enumerate(unlock_keys):
+            unlocked = skill.level > lvl_idx
+            col = C_GREEN if unlocked else C_DIM
+            draw_text(surf, loc.t(ukey), (ux, row_r.y + 56 + lvl_idx * 22), fonts["sm"], col)
+
         draw_text(surf, loc.t("skills.level_label", level=skill.level),
-                  (row_r.x + 110, row_r.y + 84), fonts["sm"], C_DIM)
+                  (row_r.x + 110, row_r.y + 110), fonts["sm"], C_DIM)
 
         # Upgrade button
         if skill.level >= 3:
@@ -1400,7 +1439,7 @@ def draw_skills(surf, fonts, game_state, hover_row: int = -1) -> dict:
             locked = not has_enough
             cost_col = C_GREEN if has_enough else C_RED
 
-        btn_r = Rect(row_r.right - 220, row_r.y + 34, 200, 50)
+        btn_r = Rect(row_r.right - 220, row_r.y + 42, 200, 50)
         draw_button(surf, btn_r, cost_text, fonts["md"],
                     hover=(i == hover_row and not locked), locked=locked)
         btns.append(btn_r)

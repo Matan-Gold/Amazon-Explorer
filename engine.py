@@ -99,6 +99,8 @@ def process_action(action: str, params: dict, state: GameState) -> None:
     """
     if action == "discover":
         do_discover(state)
+    elif action == "focused_discover":
+        do_focused_discover(state)
     elif action == "discover_specific":
         do_discover_specific(params.get("discovery_id", ""), state)
     elif action == "give_item":
@@ -151,6 +153,32 @@ def do_discover(state: GameState) -> None:
 
     discovery = random.choice(pool)
     _apply_discovery(discovery, state)
+
+
+def do_focused_discover(state: GameState) -> None:
+    """High-chance discovery used by Explorer skill interactions.
+
+    Base 65 % + 10 % per Explorer level (capped at 95 %).
+    Same reward logic as do_discover.
+    """
+    from map import get_tile
+
+    player  = state.player
+    tile    = get_tile(state.world, player.x, player.y)
+    pool    = [d for d in state.discoveries_db if tile.tile_type in d.tile_types]
+
+    if not pool:
+        state.message_queue.append(loc.t("scene.exploring"))
+        return
+
+    explorer_level = player.skills["explorer"].level
+    chance = min(0.95, 0.65 + explorer_level * 0.10)
+
+    if random.random() >= chance:
+        state.message_queue.append(loc.t("scene.exploring"))
+        return
+
+    _apply_discovery(random.choice(pool), state)
 
 
 def do_discover_specific(discovery_id: str, state: GameState) -> None:
@@ -218,8 +246,13 @@ def do_rest(food_restore: int, state: GameState) -> None:
 
 
 def do_food_gain(amount: int, state: GameState) -> None:
-    """Add food from foraging, capped at MAX_FOOD. Queue gain message."""
+    """Add food from foraging, capped at MAX_FOOD. Queue gain message.
+
+    Nature Friend level 3 grants +2 bonus food on every foraging action.
+    """
     player = state.player
+    if player.skills["nature_friend"].level >= 3:
+        amount += 2
     player.food = min(MAX_FOOD, player.food + amount)
     state.message_queue.append(loc.t("food.gain", amount=amount))
 
