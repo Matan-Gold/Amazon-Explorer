@@ -52,6 +52,10 @@ def draw_creature(surf, creature_id: str, cx: int, cy: int, size: int = 90) -> N
         "strangler_fig":     _strangler_fig,
         "brazil_nut":        _brazil_nut_plant,
         "cashew_nut":        _cashew_plant,
+        # Camp objects
+        "campfire":          _campfire,
+        "book":              _book,
+        "scroll":            _scroll,
     }
     fn = _DISPATCH.get(creature_id, _generic)
     fn(surf, cx, cy, size)
@@ -1067,6 +1071,70 @@ def _cashew_plant(surf, cx, cy, size):
                                  _s(size, 0.2), _s(size, 0.36)))
 
 
+def _campfire(surf, cx, cy, size):
+    """Campfire — glowing orange-yellow flames above a log base."""
+    s = _s(size, 0.38)
+    # Logs
+    pygame.draw.ellipse(surf, (100, 60, 20), Rect(cx - s, cy + s // 2, s * 2, s // 2))
+    pygame.draw.line(surf, (80, 45, 10), (cx - s, cy + s * 3 // 4), (cx + s, cy + s * 3 // 4), max(2, s // 5))
+    # Outer flame (orange)
+    flame_pts = [
+        (cx, cy - s * 2),
+        (cx - s, cy + s // 2),
+        (cx - s // 2, cy - s // 4),
+        (cx, cy + s // 3),
+        (cx + s // 2, cy - s // 4),
+        (cx + s, cy + s // 2),
+    ]
+    pygame.draw.polygon(surf, (220, 100, 20), flame_pts)
+    # Inner flame (yellow)
+    inner_pts = [
+        (cx, cy - int(s * 1.5)),
+        (cx - s // 2, cy + s // 4),
+        (cx, cy - s // 4),
+        (cx + s // 2, cy + s // 4),
+    ]
+    pygame.draw.polygon(surf, (255, 210, 50), inner_pts)
+    # Core (white-hot)
+    pygame.draw.circle(surf, (255, 245, 180), (cx, cy - s // 3), max(2, s // 4))
+
+
+def _book(surf, cx, cy, size):
+    """Open discovery journal — brown book with gold pages."""
+    s = _s(size, 0.38)
+    # Book cover
+    pygame.draw.rect(surf, (100, 55, 15), Rect(cx - s, cy - s, s * 2, int(s * 1.8)), border_radius=4)
+    pygame.draw.rect(surf, (150, 90, 30), Rect(cx - s, cy - s, s * 2, int(s * 1.8)), 2, border_radius=4)
+    # Page lines
+    for k in range(4):
+        ly = cy - _s(size, 0.25) + k * _s(size, 0.12)
+        pygame.draw.line(surf, (240, 220, 160), (cx - _s(size, 0.26), ly), (cx + _s(size, 0.26), ly), 1)
+    # Spine
+    pygame.draw.line(surf, (80, 40, 10), (cx, cy - s), (cx, cy + _s(size, 0.68)), 3)
+    # Gold star on cover
+    pygame.draw.circle(surf, (255, 200, 30), (cx, cy - _s(size, 0.08)), max(3, _s(size, 0.12)))
+
+
+def _scroll(surf, cx, cy, size):
+    """Skills scroll — rolled parchment with a green seal."""
+    s = _s(size, 0.38)
+    body_h = int(s * 1.6)
+    # Parchment body
+    pygame.draw.rect(surf, (210, 185, 120), Rect(cx - s, cy - s, s * 2, body_h), border_radius=3)
+    pygame.draw.rect(surf, (170, 140, 80), Rect(cx - s, cy - s, s * 2, body_h), 2, border_radius=3)
+    # Top and bottom rolls
+    for oy in (cy - s, cy - s + body_h - _s(size, 0.18)):
+        pygame.draw.ellipse(surf, (190, 160, 100), Rect(cx - s, oy, s * 2, _s(size, 0.18)))
+        pygame.draw.ellipse(surf, (150, 120, 70), Rect(cx - s, oy, s * 2, _s(size, 0.18)), 2)
+    # Text lines
+    for k in range(3):
+        ly = cy - _s(size, 0.18) + k * _s(size, 0.18)
+        pygame.draw.line(surf, (120, 90, 40), (cx - _s(size, 0.28), ly), (cx + _s(size, 0.28), ly), 1)
+    # Green wax seal
+    pygame.draw.circle(surf, (40, 150, 60), (cx, cy + _s(size, 0.28)), max(3, _s(size, 0.14)))
+    pygame.draw.circle(surf, (60, 200, 80), (cx, cy + _s(size, 0.28)), max(3, _s(size, 0.14)), 2)
+
+
 def _generic(surf, cx, cy, size):
     """Generic creature — green circle with question mark."""
     r = _s(size, 0.38)
@@ -1079,85 +1147,162 @@ def _generic(surf, cx, cy, size):
 
 # ── Explorer avatar ───────────────────────────────────────────────────────────
 
-def draw_explorer(surf, cx, cy, size: int = 60, frame: int = 0) -> None:
-    """Draw a cute little explorer character.
+def draw_explorer(surf, cx, cy, size: int = 60, frame: int = 0,
+                  color_idx: int = 0) -> None:
+    """Draw a detailed explorer character.
 
-    frame: 0=standing, 1=left step, 2=right step  (for walking animation)
+    frame:     0=standing, 1=left step, 2=right step
+    color_idx: 0=khaki, 1=pink, 2=blue, 3=forest-green
     """
+    # ── Colour palettes ──────────────────────────────────────────────────
+    _PAL = [
+        # 0  khaki (default)
+        dict(hat=(200,175,100), brim=(185,160,88), band=(95,65,30),
+             shirt=(168,150,86), boot=(82,56,26)),
+        # 1  pink / girl
+        dict(hat=(212,178,202), brim=(196,160,188), band=(130,88,118),
+             shirt=(195,145,185), boot=(140,90,130)),
+        # 2  blue / boy
+        dict(hat=(108,138,188), brim=(92,120,172), band=(52,74,120),
+             shirt=(86,118,170), boot=(56,76,134)),
+        # 3  forest-green / naturalist
+        dict(hat=(88,160,90), brim=(76,146,80), band=(44,92,48),
+             shirt=(90,154,92), boot=(46,102,52)),
+    ]
+    p = _PAL[min(max(0, color_idx), len(_PAL) - 1)]
+    hat    = p["hat"]
+    brim   = p["brim"]
+    band   = p["band"]
+    shirt  = p["shirt"]
+    boot   = p["boot"]
+    hat_hi = tuple(min(255, c + 22) for c in hat)
+    shirt_d  = tuple(max(0, c - 20) for c in shirt)
+    shirt_dd = tuple(max(0, c - 40) for c in shirt)
+    leg_c    = tuple(max(0, c - 10) for c in shirt)
+    boot_hi  = tuple(min(255, c + 22) for c in boot)
+    sole     = tuple(max(0, c - 26) for c in boot)
+
     s = size
-    # Bob up/down based on walk frame
     bob = {0: 0, 1: -3, 2: -3}.get(frame % 3, 0)
     cy += bob
 
-    # === Hat (khaki with brim) ===
-    brim_w = int(s * 0.55)
-    pygame.draw.ellipse(surf, (170, 145, 80),
-                        Rect(cx - brim_w, cy - int(s * 0.62), brim_w * 2, int(s * 0.14)))
-    crown_w = int(s * 0.34)
-    pygame.draw.rect(surf, (180, 155, 85),
-                     Rect(cx - crown_w, cy - int(s * 0.98), crown_w * 2, int(s * 0.38)))
-    pygame.draw.rect(surf, (160, 135, 70),
-                     Rect(cx - crown_w, cy - int(s * 0.62), crown_w * 2, int(s * 0.06)))
+    # === Ground shadow ===
+    sh = pygame.Surface((int(s * 1.1) * 2, int(s * 0.12) * 2), pygame.SRCALPHA)
+    pygame.draw.ellipse(sh, (0, 0, 0, 45), sh.get_rect())
+    surf.blit(sh, (cx - int(s * 1.1), cy + int(s * 0.60) - int(s * 0.12)))
+
+    # === Pith helmet ===
+    dome_w = int(s * 0.40)
+    dome_top = cy - int(s * 0.98)
+    pygame.draw.ellipse(surf, hat,
+                        Rect(cx - dome_w, dome_top, dome_w * 2, int(s * 0.52)))
+    pygame.draw.ellipse(surf, hat_hi,
+                        Rect(cx - int(dome_w * 0.55), dome_top + int(s * 0.04),
+                             int(dome_w * 0.9), int(s * 0.22)))
+    band_y = dome_top + int(s * 0.38)
+    pygame.draw.rect(surf, band,
+                     Rect(cx - dome_w + 2, band_y, (dome_w - 2) * 2, int(s * 0.10)))
+    brim_w = int(s * 0.56)
+    brim_y = band_y + int(s * 0.08)
+    pygame.draw.ellipse(surf, brim,
+                        Rect(cx - brim_w, brim_y - int(s * 0.055),
+                             brim_w * 2, int(s * 0.11)))
 
     # === Head ===
-    head_r = int(s * 0.24)
-    pygame.draw.circle(surf, (240, 195, 150), (cx, cy - int(s * 0.36)), head_r)
+    head_r = int(s * 0.25)
+    hy = cy - int(s * 0.37)
+    pygame.draw.circle(surf, (240, 198, 155), (cx, hy), head_r)
+    pygame.draw.circle(surf, (225, 175, 130),
+                       (cx + head_r - int(s * 0.04), hy + int(s * 0.04)), int(s * 0.08))
+    for ex_ in [-int(s * 0.13), int(s * 0.13)]:
+        chk = pygame.Surface((int(s * 0.16) * 2, int(s * 0.09) * 2), pygame.SRCALPHA)
+        pygame.draw.ellipse(chk, (225, 148, 120, 130), chk.get_rect())
+        surf.blit(chk, (cx + ex_ - int(s * 0.16), hy + int(s * 0.07) - int(s * 0.09)))
 
     # === Eyes ===
-    for ex in [-int(s * 0.07), int(s * 0.07)]:
-        pygame.draw.circle(surf, (60, 40, 20), (cx + ex, cy - int(s * 0.38)), int(s * 0.045))
-        pygame.draw.circle(surf, (255, 255, 255), (cx + ex + 1, cy - int(s * 0.38) - 1), int(s * 0.02))
+    ey = hy - int(s * 0.07)
+    for ex_ in [-int(s * 0.10), int(s * 0.10)]:
+        pygame.draw.ellipse(surf, (255, 255, 255),
+                            Rect(cx + ex_ - int(s * 0.065), ey - int(s * 0.055),
+                                 int(s * 0.13), int(s * 0.11)))
+        pygame.draw.circle(surf, (55, 38, 18), (cx + ex_, ey), int(s * 0.045))
+        pygame.draw.circle(surf, (255, 255, 255),
+                           (cx + ex_ + int(s * 0.02), ey - int(s * 0.02)), int(s * 0.018))
+    for ex_ in [-int(s * 0.10), int(s * 0.10)]:
+        pygame.draw.line(surf, (115, 78, 38),
+                         (cx + ex_ - int(s * 0.055), ey - int(s * 0.10)),
+                         (cx + ex_ + int(s * 0.055), ey - int(s * 0.08)),
+                         max(1, int(s * 0.025)))
 
     # === Smile ===
-    pygame.draw.arc(surf, (180, 100, 80),
-                    Rect(cx - int(s * 0.07), cy - int(s * 0.3),
-                         int(s * 0.14), int(s * 0.08)),
-                    math.pi, 2 * math.pi, 2)
+    pygame.draw.arc(surf, (175, 95, 75),
+                    Rect(cx - int(s * 0.10), hy + int(s * 0.04),
+                         int(s * 0.20), int(s * 0.10)),
+                    math.pi, 2 * math.pi, max(1, int(s * 0.03)))
 
-    # === Body (khaki shirt) ===
-    body_w = int(s * 0.3)
-    pygame.draw.rect(surf, (160, 145, 80),
-                     Rect(cx - body_w, cy - int(s * 0.14), body_w * 2, int(s * 0.32)),
-                     border_radius=4)
-    # Pocket
-    pygame.draw.rect(surf, (140, 125, 65),
-                     Rect(cx + int(s * 0.06), cy - int(s * 0.06), int(s * 0.12), int(s * 0.1)),
-                     border_radius=2)
+    # === Neck ===
+    pygame.draw.rect(surf, (228, 188, 145),
+                     Rect(cx - int(s * 0.08), hy + head_r - int(s * 0.06),
+                          int(s * 0.16), int(s * 0.10)))
+
+    # === Body ===
+    body_w = int(s * 0.31)
+    body_top = cy - int(s * 0.12)
+    body_h = int(s * 0.34)
+    pygame.draw.rect(surf, shirt,
+                     Rect(cx - body_w, body_top, body_w * 2, body_h), border_radius=5)
+    shade = pygame.Surface((body_w, body_h), pygame.SRCALPHA)
+    pygame.draw.rect(shade, (0, 0, 0, 30), shade.get_rect(), border_radius=5)
+    surf.blit(shade, (cx - body_w, body_top))
+    pygame.draw.line(surf, shirt_d,
+                     (cx, body_top + 3), (cx, body_top + body_h - 3), max(1, int(s * 0.015)))
+    for bi in range(3):
+        by = body_top + int(body_h * (0.18 + bi * 0.30))
+        pygame.draw.circle(surf, shirt_dd, (cx, by), max(1, int(s * 0.028)))
+    p_rect = Rect(cx + int(s * 0.08), body_top + int(s * 0.05),
+                  int(s * 0.14), int(s * 0.12))
+    pygame.draw.rect(surf, shirt_d, p_rect, border_radius=2)
+    pygame.draw.rect(surf, shirt_dd, p_rect, 1, border_radius=2)
 
     # === Backpack ===
-    pygame.draw.rect(surf, (110, 80, 40),
-                     Rect(cx + body_w - 2, cy - int(s * 0.1), int(s * 0.16), int(s * 0.24)),
-                     border_radius=4)
+    bp_x = cx + body_w - int(s * 0.02)
+    bp_rect = Rect(bp_x, body_top - int(s * 0.04), int(s * 0.22), int(s * 0.34))
+    pygame.draw.rect(surf, (122, 88, 46), bp_rect, border_radius=5)
+    pygame.draw.rect(surf, (98, 68, 34), bp_rect, 1, border_radius=5)
+    bp2 = Rect(bp_rect.x + 3, bp_rect.y + int(bp_rect.h * 0.55),
+               bp_rect.w - 6, int(bp_rect.h * 0.38))
+    pygame.draw.rect(surf, (142, 105, 58), bp2, border_radius=3)
 
     # === Arms ===
-    left_angle  = math.radians(-30 + (frame == 1) * 20)
-    right_angle = math.radians(30 - (frame == 2) * 20)
+    left_angle  = math.radians(-22 + (frame == 1) * 28)
+    right_angle = math.radians(22 - (frame == 2) * 28)
     for angle, side in [(left_angle, -1), (right_angle, 1)]:
-        ax = cx + side * body_w
-        ay = cy - int(s * 0.1)
-        ex = ax + int(s * 0.28 * math.cos(angle + math.pi * 0.5) * side)
-        ey = ay + int(s * 0.28 * math.sin(angle + math.pi * 0.5))
-        pygame.draw.line(surf, (200, 160, 110), (ax, ay), (ex, ey), int(s * 0.09))
-        pygame.draw.circle(surf, (200, 160, 110), (ex, ey), int(s * 0.07))
+        ax = cx + side * (body_w - int(s * 0.04))
+        ay = body_top + int(s * 0.06)
+        arm_len = int(s * 0.30)
+        ex_ = ax + int(arm_len * math.sin(angle) * side)
+        ey_ = ay + int(arm_len * math.cos(angle))
+        pygame.draw.line(surf, (198, 158, 105), (ax, ay), (ex_, ey_), max(2, int(s * 0.11)))
+        pygame.draw.circle(surf, (220, 178, 132), (ex_, ey_), max(2, int(s * 0.08)))
 
-    # === Legs (khaki shorts/pants) ===
-    left_leg_off  = int(s * 0.15) * (1 if frame == 1 else (-1 if frame == 2 else 0))
-    right_leg_off = -left_leg_off
-    for lx_off, ly_extra in [(-int(s * 0.1), left_leg_off), (int(s * 0.1), right_leg_off)]:
-        # Upper leg
-        pygame.draw.rect(surf, (155, 130, 70),
-                         Rect(cx + lx_off - int(s * 0.08),
-                              cy + int(s * 0.17),
-                              int(s * 0.16), int(s * 0.24)),
-                         border_radius=3)
-        # Lower leg / boot
-        pygame.draw.rect(surf, (90, 65, 35),
-                         Rect(cx + lx_off - int(s * 0.07),
-                              cy + int(s * 0.4) + ly_extra,
-                              int(s * 0.14), int(s * 0.18)),
-                         border_radius=3)
-        # Boot sole
-        pygame.draw.ellipse(surf, (60, 40, 20),
-                            Rect(cx + lx_off - int(s * 0.1),
-                                 cy + int(s * 0.55) + ly_extra,
-                                 int(s * 0.2), int(s * 0.07)))
+    # === Legs ===
+    swing = int(s * 0.18)
+    left_off  = swing * (1 if frame == 1 else (-1 if frame == 2 else 0))
+    right_off = -left_off
+    leg_top = body_top + body_h - int(s * 0.02)
+    for lx_off, ly_extra in [(-int(s * 0.11), left_off), (int(s * 0.11), right_off)]:
+        ul_rect = Rect(cx + lx_off - int(s * 0.09), leg_top,
+                       int(s * 0.18), int(s * 0.26))
+        pygame.draw.rect(surf, leg_c, ul_rect, border_radius=4)
+        boot_top = leg_top + int(s * 0.24) + ly_extra
+        bl_rect = Rect(cx + lx_off - int(s * 0.09), boot_top,
+                       int(s * 0.18), int(s * 0.20))
+        pygame.draw.rect(surf, boot, bl_rect, border_radius=4)
+        pygame.draw.line(surf, boot_hi,
+                         (cx + lx_off - int(s * 0.05), boot_top + 2),
+                         (cx + lx_off - int(s * 0.05), boot_top + int(s * 0.14)),
+                         max(1, int(s * 0.02)))
+        pygame.draw.ellipse(surf, sole,
+                            Rect(cx + lx_off - int(s * 0.11),
+                                 boot_top + int(s * 0.17),
+                                 int(s * 0.22), int(s * 0.07)))

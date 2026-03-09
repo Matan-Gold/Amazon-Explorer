@@ -1,0 +1,47 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Device: cpu
+
+Loading facebook/musicgen-small...
+Loading weights:   0%|          | 0/611 [00:00<?, ?it/s]Loading weights: 100%|##########| 611/611 [00:00<00:00, 8367.63it/s]
+[1mMusicgenForConditionalGeneration LOAD REPORT[0m from: facebook/musicgen-small
+Key                                           | Status     |  | 
+----------------------------------------------+------------+--+-
+decoder.model.decoder.embed_positions.weights | UNEXPECTED |  | 
+
+[3mNotes:
+- UNEXPECTED[3m	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.[0m
+  Loaded: facebook/musicgen-small
+
+[1/7] Composing 'music_exploration' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_exploration.wav
+
+[2/7] Composing 'music_forest' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_forest.wav
+
+[3/7] Composing 'music_river' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_river.wav
+
+[4/7] Composing 'music_clearing' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_clearing.wav
+
+[5/7] Composing 'music_dense_jungle' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_dense_jungle.wav
+
+[6/7] Composing 'music_camp' (30s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\music_camp.wav
+
+[7/7] Composing 'discovery_stinger' (4s)...
+  Saved: C:\Users\User\Documents\Amazon-Explorer\data\music\discovery_stinger.wav
+
+Done! Music files in:
+  C:\Users\User\Documents\Amazon-Explorer\data\music
+
+Tracks:
+  music_exploration.wav  (1.8 MB)
+  music_forest.wav  (1.8 MB)
+  music_river.wav  (1.8 MB)
+  music_clearing.wav  (1.8 MB)
+  music_dense_jungle.wav  (1.8 MB)
+  music_camp.wav  (1.8 MB)
+  discovery_stinger.wav  (0.2 MB)

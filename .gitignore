@@ -9,6 +9,12 @@ venv/
 # Generated AI images (large binary files — generate with generate_on_gpu.py)
 data/images/
 
+# Generated AI music (large WAV files — generate with generate_music.py)
+data/music/
+
+# Intermediate output before copying into data/
+output_images/
+
 # HuggingFace model cache
 .cache/
 *.safetensors

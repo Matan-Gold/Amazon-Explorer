@@ -11,6 +11,7 @@
       "objects": [
         {
           "id": "fig_tree",
+          "sprite_id": "kapok_tree",
           "name_key": "obj.fig_tree_name",
           "interactions": [
             {
@@ -31,6 +32,7 @@
         },
         {
           "id": "hollow_log",
+          "sprite_id": "strangler_fig",
           "name_key": "obj.hollow_log_name",
           "interactions": [
             {
@@ -65,6 +67,7 @@
         },
         {
           "id": "brazil_nut_tree",
+          "sprite_id": "brazil_nut",
           "name_key": "obj.brazil_nut_tree_name",
           "interactions": [
             {
@@ -115,6 +118,7 @@
       "objects": [
         {
           "id": "fish_pool",
+          "sprite_id": "ornamental_fish",
           "name_key": "obj.fish_pool_name",
           "interactions": [
             {
@@ -153,6 +157,7 @@
         },
         {
           "id": "flat_rocks",
+          "sprite_id": "river_crab",
           "name_key": "obj.flat_rocks_name",
           "interactions": [
             {
@@ -177,6 +182,7 @@
         },
         {
           "id": "water_lilies",
+          "sprite_id": "giant_water_lily",
           "name_key": "obj.water_lilies_name",
           "interactions": [
             {
@@ -223,6 +229,7 @@
       "objects": [
         {
           "id": "cashew_bush",
+          "sprite_id": "cashew_nut",
           "name_key": "obj.cashew_bush_name",
           "interactions": [
             {
@@ -243,6 +250,7 @@
         },
         {
           "id": "hard_nuts",
+          "sprite_id": "brazil_nut",
           "name_key": "obj.hard_nuts_name",
           "interactions": [
             {
@@ -265,6 +273,7 @@
         },
         {
           "id": "flower_field",
+          "sprite_id": "passion_flower",
           "name_key": "obj.flower_field_name",
           "interactions": [
             {
@@ -313,6 +322,7 @@
       "objects": [
         {
           "id": "vines",
+          "sprite_id": "strangler_fig",
           "name_key": "obj.vines_name",
           "interactions": [
             {
@@ -349,6 +359,7 @@
         },
         {
           "id": "ancient_tree",
+          "sprite_id": "kapok_tree",
           "name_key": "obj.ancient_tree_name",
           "interactions": [
             {
@@ -383,6 +394,7 @@
         },
         {
           "id": "moving_log",
+          "sprite_id": "anaconda",
           "name_key": "obj.moving_log_name",
           "interactions": [
             {
@@ -434,6 +446,7 @@
       "objects": [
         {
           "id": "campfire",
+          "sprite_id": "campfire",
           "name_key": "obj.campfire_name",
           "interactions": [
             {
@@ -454,6 +467,7 @@
         },
         {
           "id": "discovery_journal",
+          "sprite_id": "book",
           "name_key": "obj.discovery_journal_name",
           "interactions": [
             {
@@ -466,6 +480,7 @@
         },
         {
           "id": "skills_journal",
+          "sprite_id": "scroll",
           "name_key": "obj.skills_journal_name",
           "interactions": [
             {

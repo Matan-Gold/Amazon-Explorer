@@ -165,6 +165,169 @@ NEGATIVE = (
     "worst quality, cartoon, anime, sketch"
 )
 
+# ── Creature / Plant Portrait Prompts ─────────────────────────────────────────
+# Square 768×768 portraits for the Discovery Journal detail view.
+# Output to output_images/creatures/ → copy to data/images/creatures/
+
+STYLE = "Amazon rainforest, painterly fantasy illustration portrait, highly detailed, vivid colors, magical atmosphere, masterpiece"
+
+CREATURES = {
+    # Animals
+    "macaw": {
+        "seed": 3001,
+        "prompt": f"blue-and-yellow macaw parrot, vibrant rainbow plumage, perched on branch, {STYLE}",
+    },
+    "sloth": {
+        "seed": 3002,
+        "prompt": f"three-toed sloth hanging upside-down, fluffy grey fur, gentle expression, green leaves, {STYLE}",
+    },
+    "anaconda": {
+        "seed": 3003,
+        "prompt": f"green anaconda snake coiled on mossy rock, iridescent scales, river bank setting, {STYLE}",
+    },
+    "tapir": {
+        "seed": 3004,
+        "prompt": f"Brazilian tapir, stocky body, prehensile snout, tropical plants background, {STYLE}",
+    },
+    "jaguar": {
+        "seed": 3005,
+        "prompt": f"jaguar big cat, golden fur with black rosettes, piercing golden eyes, jungle shadows, {STYLE}",
+    },
+    "pink_dolphin": {
+        "seed": 3006,
+        "prompt": f"Amazon pink river dolphin, pink skin, leaping from turquoise river water, magical glow, {STYLE}",
+    },
+    "poison_dart_frog": {
+        "seed": 3007,
+        "prompt": f"poison dart frog, vivid blue and black colors, sitting on bright green leaf, macro detail, {STYLE}",
+    },
+    "capybara": {
+        "seed": 3008,
+        "prompt": f"capybara, large friendly rodent, sitting by river bank, wet fur, lush tropical plants, {STYLE}",
+    },
+    "toucan": {
+        "seed": 3009,
+        "prompt": f"toucan bird, enormous colorful orange and yellow beak, perched on jungle branch, {STYLE}",
+    },
+    "howler_monkey": {
+        "seed": 3010,
+        "prompt": f"howler monkey, dark fur, open mouth calling loudly, hanging in forest canopy, {STYLE}",
+    },
+    "giant_otter": {
+        "seed": 3011,
+        "prompt": f"giant river otter, sleek brown fur, playful expression, Amazonian river, splashing water, {STYLE}",
+    },
+    "morpho_butterfly": {
+        "seed": 3012,
+        "prompt": f"blue morpho butterfly, enormous iridescent blue wings spread open, sunlit forest clearing, {STYLE}",
+    },
+    "harpy_eagle": {
+        "seed": 3013,
+        "prompt": f"harpy eagle, fierce gaze, dramatic grey and white plumage, fan crest, jungle canopy perch, {STYLE}",
+    },
+    "piranha": {
+        "seed": 3014,
+        "prompt": f"red-bellied piranha fish, sharp teeth showing, underwater Amazon river, dappled light, {STYLE}",
+    },
+    "pygmy_owl": {
+        "seed": 3015,
+        "prompt": f"pygmy owl, tiny and cute, huge yellow eyes, fluffy brown feathers, tree hollow at night, {STYLE}",
+    },
+    "amazon_tree_frog": {
+        "seed": 3016,
+        "prompt": f"Amazon tree frog, bright vivid green, enormous golden eyes, clinging to tropical leaf, {STYLE}",
+    },
+    "blue_morpho_beetle": {
+        "seed": 3017,
+        "prompt": f"blue morpho beetle, jewel-like iridescent cobalt shell, Amazon forest floor, macro detail, {STYLE}",
+    },
+    "ornamental_fish": {
+        "seed": 3018,
+        "prompt": f"neon tetra fish school, glowing blue and red stripe, crystal Amazon river water, {STYLE}",
+    },
+    "river_crab": {
+        "seed": 3019,
+        "prompt": f"Amazon freshwater crab, patterned shell, one large claw raised, mossy tropical rock, {STYLE}",
+    },
+    "flower_beetle": {
+        "seed": 3020,
+        "prompt": f"flower chafer beetle, jewel-like iridescent shell, perched on tropical flower bloom, macro, {STYLE}",
+    },
+    "forest_mouse": {
+        "seed": 3021,
+        "prompt": f"tiny Amazon forest mouse, large round eyes, delicate whiskers, holding a nut, fallen leaf, {STYLE}",
+    },
+    "orchid_bee": {
+        "seed": 3022,
+        "prompt": f"male orchid bee, brilliant metallic green iridescent body, hovering at orchid flower, macro, {STYLE}",
+    },
+    "green_parrot": {
+        "seed": 3023,
+        "prompt": f"Amazon parrot, vivid green plumage with red and blue accents, jungle branch, expressive, {STYLE}",
+    },
+    # Plants
+    "giant_water_lily": {
+        "seed": 3024,
+        "prompt": f"Victoria amazonica giant water lily, enormous circular pad on river, white and pink flower, {STYLE}",
+    },
+    "heliconia": {
+        "seed": 3025,
+        "prompt": f"heliconia flower, dramatic red lobster-claw bracts, vivid tropical foliage, {STYLE}",
+    },
+    "orchid": {
+        "seed": 3026,
+        "prompt": f"Amazon rainforest orchid, intricate purple and white flower, epiphyte on mossy tree bark, {STYLE}",
+    },
+    "bromeliad": {
+        "seed": 3027,
+        "prompt": f"bromeliad rosette, vivid red and green leaves, central water pool, growing on tree trunk, {STYLE}",
+    },
+    "rubber_tree": {
+        "seed": 3028,
+        "prompt": f"Amazon rubber tree trunk, white latex dripping from cut, massive tropical leaves, forest light, {STYLE}",
+    },
+    "kapok_tree": {
+        "seed": 3029,
+        "prompt": f"kapok tree, enormous buttress roots, towering trunk, fluffy white seed pods drifting, {STYLE}",
+    },
+    "cacao": {
+        "seed": 3030,
+        "prompt": f"cacao tree, colorful football-shaped pods growing directly from trunk, Amazon forest, {STYLE}",
+    },
+    "passion_flower": {
+        "seed": 3031,
+        "prompt": f"passionflower, intricate purple and white petals, complex crown filaments, tropical vine, {STYLE}",
+    },
+    "banana_plant": {
+        "seed": 3032,
+        "prompt": f"wild Amazon banana plant, enormous paddle-shaped leaves, green fruit cluster, jungle clearing, {STYLE}",
+    },
+    "amazon_lily": {
+        "seed": 3033,
+        "prompt": f"Amazon lily, pure white fragrant flower, tropical waterside, lush green leaves, morning dew, {STYLE}",
+    },
+    "strangler_fig": {
+        "seed": 3034,
+        "prompt": f"strangler fig, lattice of aerial roots wrapping ancient tree, dramatic jungle interior, {STYLE}",
+    },
+    "brazil_nut": {
+        "seed": 3035,
+        "prompt": f"Brazil nut tree pod, round woody capsule cracked open showing seeds, forest floor, {STYLE}",
+    },
+    "cashew_nut": {
+        "seed": 3036,
+        "prompt": f"cashew plant, red-yellow cashew apple with nut attached, tropical clearing, unusual fruit, {STYLE}",
+    },
+}
+
+CREATURE_NEGATIVE = (
+    "text, watermark, signature, human face, person, ugly, blurry, low quality, "
+    "nsfw, multiple animals, cluttered background, worst quality, cartoon, anime, sketch"
+)
+
+CREATURE_W = CREATURE_H = 768   # SDXL square portrait
+CREATURE_SAVE_SIZE = 512        # saved at 512×512 for storage efficiency
+
 PREFERRED_MODELS = [
     "Lykon/dreamshaper-xl-1-0",         # best illustration quality
     "stabilityai/stable-diffusion-xl-base-1.0",  # official SDXL
@@ -248,11 +411,42 @@ def main():
         img.save(str(out_path), "PNG", optimize=True)
         print(f"  Saved: {out_path}")
 
-    print(f"\nDone! Copy all PNG files from:\n  {OUTPUT_DIR}\nto the game folder:\n  data/images/")
-    print("\nFiles to copy:")
-    for name, info in SCENES.items():
-        src = OUTPUT_DIR / f"{info['slug']}.png"
-        print(f"  {src.name}  ->  data/images/{src.name}")
+    print(f"\nDone with scene backgrounds! Copy PNGs from:\n  {OUTPUT_DIR}\nto:\n  data/images/")
+
+    # ── Creature / Plant Portraits ─────────────────────────────────────────────
+    creature_dir = OUTPUT_DIR / "creatures"
+    creature_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"\n{'-'*60}")
+    print(f"Now generating {len(CREATURES)} creature/plant portraits for the Discovery Journal...")
+    print(f"{'-'*60}")
+
+    total_c = len(CREATURES)
+    for i, (creature_id, info) in enumerate(CREATURES.items(), 1):
+        out_path = creature_dir / f"{creature_id}.png"
+        if out_path.exists():
+            print(f"[{i}/{total_c}] '{creature_id}' already exists — skipping.")
+            continue
+
+        print(f"\n[{i}/{total_c}] Painting '{creature_id}'...")
+        gen    = torch.Generator(device="cpu").manual_seed(info["seed"])
+        result = pipe(
+            prompt          = info["prompt"],
+            negative_prompt = CREATURE_NEGATIVE,
+            width           = CREATURE_W,
+            height          = CREATURE_H,
+            num_inference_steps = 25,
+            guidance_scale  = 7.5,
+            generator       = gen,
+        )
+        img: Image.Image = result.images[0]
+        img = img.resize((CREATURE_SAVE_SIZE, CREATURE_SAVE_SIZE), Image.LANCZOS)
+        img.save(str(out_path), "PNG", optimize=True)
+        print(f"  Saved: {out_path}")
+
+    print(f"\nAll done!")
+    print(f"\nCopy creature portraits:")
+    print(f"  {creature_dir}/*.png  ->  data/images/creatures/")
 
 
 if __name__ == "__main__":

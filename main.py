@@ -25,6 +25,7 @@ from models import Player, GameState, AVATAR_OPTIONS
 
 class GameApp:
     def __init__(self):
+        pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
         self.win = pygame.display.set_mode((scenes.W, scenes.H))
         pygame.display.set_caption("Amazon Rainforest Explorer")
@@ -74,8 +75,73 @@ class GameApp:
         # UI rects (rebuilt each draw)
         self._ui: dict = {}
 
+        # Music
+        self._music_enabled: bool = False
+        self._current_track: str | None = None
+        self._discovery_sfx: object = None  # pygame.mixer.Sound
+        self._init_music()
+
         # Fonts
         self.fonts = scenes.load_fonts()
+
+    # ── Music ─────────────────────────────────────────────────────────────────
+
+    def _init_music(self):
+        """Load music files if present; silently skip if missing."""
+        from pathlib import Path
+        if not pygame.mixer.get_init():
+            return
+        music_dir = Path(__file__).parent / "data" / "music"
+        if not music_dir.exists():
+            return
+        if not list(music_dir.glob("music_*.wav")):
+            return
+        self._music_enabled = True
+        # Discovery stinger (short one-shot sound, uses mixer channel not music channel)
+        stinger = music_dir / "discovery_stinger.wav"
+        if stinger.exists():
+            try:
+                self._discovery_sfx = pygame.mixer.Sound(str(stinger))
+                self._discovery_sfx.set_volume(0.75)
+            except Exception as e:
+                print(f"[music] Could not load stinger: {e}")
+        # Start exploration track immediately
+        self._play_music("music_exploration")
+
+    def _play_music(self, track_name: str):
+        """Switch background music to track_name (no-op if already playing)."""
+        if not self._music_enabled or track_name == self._current_track:
+            return
+        from pathlib import Path
+        path = Path(__file__).parent / "data" / "music" / f"{track_name}.wav"
+        if not path.exists():
+            return
+        try:
+            pygame.mixer.music.load(str(path))
+            pygame.mixer.music.set_volume(0.45)
+            pygame.mixer.music.play(-1)   # -1 = loop forever
+            self._current_track = track_name
+        except Exception as e:
+            print(f"[music] Could not play {track_name}: {e}")
+
+    # Maps tile_type → music track name (slugified to match file names)
+    _TILE_MUSIC = {
+        "Forest":       "music_forest",
+        "River":        "music_river",
+        "Clearing":     "music_clearing",
+        "Dense Jungle": "music_dense_jungle",
+        "Camp":         "music_camp",
+    }
+
+    def _update_music(self):
+        """Called every frame; switches track based on current state and tile."""
+        if not self._music_enabled:
+            return
+        if self.state in ("SCENE_OBJECTS", "SCENE_INTERACTIONS"):
+            track = self._TILE_MUSIC.get(self.scene_tile, "music_exploration")
+        else:
+            track = "music_exploration"
+        self._play_music(track)
 
     # ── Main loop ─────────────────────────────────────────────────────────────
 
@@ -115,6 +181,7 @@ class GameApp:
     # ── Draw dispatcher ───────────────────────────────────────────────────────
 
     def _draw(self):
+        self._update_music()
         if self.state == "TITLE":
             self._ui = scenes.draw_title(self.win, self.fonts)
 
@@ -452,6 +519,8 @@ class GameApp:
                         "kind": "discovery_new", "discovery": disc,
                         "knowledge_gained": kg, "tile_type": self.scene_tile,
                     })
+                    if self._discovery_sfx:
+                        self._discovery_sfx.play()
                 elif kind == "discovery_old":
                     _, disc, kg = msg
                     self.popup_queue.append({
@@ -604,7 +673,8 @@ def main():
 
     # ── Normal game startup ────────────────────────────────────────────────────
     app = GameApp()
-    scenes.load_scene_images()   # load generated PNGs (or skip silently if missing)
+    scenes.load_scene_images()      # scene backgrounds (data/images/)
+    scenes.load_creature_images()   # journal portraits (data/images/creatures/)
     app.run()
 
 
